@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tmux Windows Terminal"
+  short_description: "Fix tmux mouse, clipboard, and terminal issues"
+  default_prompt: "Use $tmux-windows-terminal to diagnose and fix tmux mouse, clipboard, passthrough, or full .tmux.conf issues over SSH, WSL, or Windows Terminal."

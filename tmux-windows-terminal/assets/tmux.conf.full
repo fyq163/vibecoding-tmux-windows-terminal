@@ -1,0 +1,97 @@
+# =============================================================================
+# Unified tmux config — Windows Terminal / WSL / SSH friendly
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# PREFIX & BASICS
+# ---------------------------------------------------------------------------
+set -g prefix C-b
+bind d detach-client
+set -g base-index 1
+setw -g pane-base-index 1
+set -g renumber-windows on
+set -g history-limit 50000
+set -sg escape-time 10
+
+# ---------------------------------------------------------------------------
+# TERMINAL + MOUSE + CLIPBOARD + RGB
+# ---------------------------------------------------------------------------
+set -g default-terminal "tmux-256color"
+set -g terminal-overrides "xterm-256color:Tc:RGB,tmux-256color:Tc:RGB,tmux:Tc:RGB"
+set -ag terminal-overrides ",xterm-256color:Ms=\\E]52;c;%p2%s\\007,tmux-256color:Ms=\\E]52;c;%p2%s\\007,tmux:Ms=\\E]52;c;%p2%s\\007"
+set -g terminal-features "xterm-256color:RGB:mouse:extkeys:clipboard,tmux-256color:RGB:mouse:extkeys:clipboard,tmux:RGB:mouse:extkeys:clipboard"
+
+set -g mouse on
+set -g focus-events off
+set -s extended-keys on
+set -g allow-passthrough all
+set -s set-clipboard external
+
+# ---------------------------------------------------------------------------
+# STATUS BAR
+# ---------------------------------------------------------------------------
+set -g status-style 'bg=#1a1a2e fg=#eaeaea'
+set -g status-position top
+set -g status-left ''
+set -g status-right ' %H:%M '
+set -g status-justify left
+
+# ---------------------------------------------------------------------------
+# PANE BORDERS
+# ---------------------------------------------------------------------------
+set -g pane-border-style 'fg=#333333'
+set -g pane-active-border-style 'fg=#5294e2'
+
+# ---------------------------------------------------------------------------
+# WINDOW LIST
+# ---------------------------------------------------------------------------
+setw -g window-status-format ' #I:#W '
+setw -g window-status-current-format ' [#I:#W] '
+setw -g window-status-current-style 'bg=#5294e2 fg=#ffffff bold'
+setw -g window-status-style 'bg=#333333 fg=#aaaaaa'
+setw -g window-status-separator ''
+
+# ---------------------------------------------------------------------------
+# ACTIVITY & RESIZE
+# ---------------------------------------------------------------------------
+setw -g monitor-activity on
+set -g visual-activity off
+setw -g aggressive-resize on
+
+# ---------------------------------------------------------------------------
+# COPY MODE — vi style
+# ---------------------------------------------------------------------------
+setw -g mode-keys vi
+bind -T copy-mode-vi v send -X begin-selection
+bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
+
+# ---------------------------------------------------------------------------
+# WINDOWS TERMINAL / SSH — Native selection fallback
+# ---------------------------------------------------------------------------
+bind-key -n F12 if-shell -F '#{mouse}' \
+  'set -g mouse off; display-message "tmux mouse: off (use terminal selection / Shift-drag)"' \
+  'set -g mouse on; display-message "tmux mouse: on"'
+
+# ---------------------------------------------------------------------------
+# CLIPBOARD — Show buffer in popup
+# ---------------------------------------------------------------------------
+bind Y display-popup -E -w 80% -h 60% "tmux show-buffer 2>/dev/null || echo 'Buffer empty'"
+
+# ---------------------------------------------------------------------------
+# NAVIGATION — Alt + arrow keys for pane switching
+# ---------------------------------------------------------------------------
+bind -n M-Left select-pane -L
+bind -n M-Right select-pane -R
+bind -n M-Up select-pane -U
+bind -n M-Down select-pane -D
+
+# ---------------------------------------------------------------------------
+# POPUP — Alt + p opens a quick terminal
+# ---------------------------------------------------------------------------
+bind -n M-p display-popup -E -w 80% -h 80% "tmux new-session -A -s popup"
+
+# ---------------------------------------------------------------------------
+# ZOOM — Double-click pane to toggle zoom
+# ---------------------------------------------------------------------------
+bind -n DoubleClick1Pane resize-pane -Z
