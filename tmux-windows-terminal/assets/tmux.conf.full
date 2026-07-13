@@ -17,9 +17,9 @@ set -sg escape-time 10
 # TERMINAL + MOUSE + CLIPBOARD + RGB
 # ---------------------------------------------------------------------------
 set -g default-terminal "tmux-256color"
-set -g terminal-overrides "xterm-256color:Tc:RGB,tmux-256color:Tc:RGB,tmux:Tc:RGB"
-set -ag terminal-overrides ",xterm-256color:Ms=\\E]52;c;%p2%s\\007,tmux-256color:Ms=\\E]52;c;%p2%s\\007,tmux:Ms=\\E]52;c;%p2%s\\007"
-set -g terminal-features "xterm-256color:RGB:mouse:extkeys:clipboard,tmux-256color:RGB:mouse:extkeys:clipboard,tmux:RGB:mouse:extkeys:clipboard"
+set -g terminal-overrides "xterm-ghostty:Tc:RGB,xterm-256color:Tc:RGB,tmux-256color:Tc:RGB,tmux:Tc:RGB"
+set -ag terminal-overrides ",xterm-ghostty:Ms=\\E]52;c;%p2%s\\007,xterm-256color:Ms=\\E]52;c;%p2%s\\007,tmux-256color:Ms=\\E]52;c;%p2%s\\007,tmux:Ms=\\E]52;c;%p2%s\\007"
+set -g terminal-features "xterm-ghostty:RGB:mouse:extkeys:clipboard,xterm-256color:RGB:mouse:extkeys:clipboard,tmux-256color:RGB:mouse:extkeys:clipboard,tmux:RGB:mouse:extkeys:clipboard"
 
 set -g mouse on
 set -g focus-events off
