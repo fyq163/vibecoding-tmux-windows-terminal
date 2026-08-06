@@ -25,7 +25,7 @@ set -g mouse on
 set -g focus-events off
 set -s extended-keys on
 set -g allow-passthrough all
-set -s set-clipboard external
+set -s set-clipboard on
 
 # ---------------------------------------------------------------------------
 # STATUS BAR
