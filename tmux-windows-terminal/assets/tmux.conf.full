@@ -22,7 +22,7 @@ set -ag terminal-overrides ",xterm-ghostty:Ms=\\E]52;c;%p2%s\\007,xterm-256color
 set -g terminal-features "xterm-ghostty:RGB:mouse:extkeys:clipboard,xterm-256color:RGB:mouse:extkeys:clipboard,tmux-256color:RGB:mouse:extkeys:clipboard,tmux:RGB:mouse:extkeys:clipboard"
 
 set -g mouse on
-set -g focus-events off
+set -g focus-events on
 set -s extended-keys on
 set -g allow-passthrough all
 set -s set-clipboard on
