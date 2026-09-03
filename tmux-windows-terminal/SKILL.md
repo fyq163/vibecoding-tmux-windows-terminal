@@ -26,9 +26,11 @@ Use this skill to repair tmux in remote or nested terminal chains where terminal
 - Prefer `default-terminal "tmux-256color"` when `infocmp tmux-256color` succeeds.
 - Prefer `terminal-features` over broad legacy `terminal-overrides` when expressing classes of support such as `RGB`, `mouse`, `extkeys`, and `clipboard`.
 - Keep `terminal-overrides` narrow. Avoid wildcard-heavy entries unless the user truly needs them across many outer terminals.
-- Use `set -g focus-events off` when Windows Terminal, WSL, ConPTY, SSH latency, or leaked `61;...c` style responses are involved.
+- Keep `set -g focus-events on` as the baseline. Drop it to `off` only when Windows Terminal, WSL, ConPTY, or SSH-latency paths actually leak `61;...c` style focus or device-attribute responses into the pane.
 - Use `set -g allow-passthrough all` for remote or nested clipboard paths when visible-pane restrictions are likely to interfere.
-- Prefer `set -s set-clipboard external` for remote tmux sessions that should write to the host terminal clipboard through OSC 52.
+- Use `set -s set-clipboard on` so tmux both accepts application clipboard updates and emits OSC 52 outward to the host terminal.
+- Set `set -s extended-keys on` plus `set -g extended-keys-format csi-u` so modified keys such as `Shift+Enter` and `Ctrl+Enter` survive the tmux hop. `extended-keys-format` requires tmux 3.5 or later; omit it on 3.2 through 3.4.
+- Declare terminal capabilities with `terminal-features` including `extkeys`, and match the actual outer terminal names such as `xterm-ghostty`, `xterm-256color`, `tmux-256color`, and `tmux`, rather than assuming `xterm-256color` only.
 - Include a fast fallback for native terminal selection, such as a keybinding that temporarily disables tmux mouse.
 
 ## Editing Guidance
@@ -42,5 +44,6 @@ Use this skill to repair tmux in remote or nested terminal chains where terminal
 
 - Read `references/troubleshooting.md` for symptom-to-fix mapping and validation steps.
 - Read `references/config-rationale.md` when you need section-by-section reasoning for a full config.
+- Read `references/extended-keys.md` for modifier-key problems such as `Shift+Enter` collapsing to plain `Enter`, and for `extended-keys-format csi-u` guidance.
 - Use `assets/tmux.conf.full` as the complete template.
 - Run `scripts/install_tmux_windows_terminal_conf.sh` to install the full template with an automatic backup.

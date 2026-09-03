@@ -21,14 +21,15 @@ Common signs:
 
 Primary fixes:
 
-1. Set `set -g focus-events off`.
-2. Keep `terminal-features` narrow and explicit for the actual outer terminal type.
-3. Avoid piling up repeated `set -ga terminal-overrides` and `set -ga terminal-features` across reloads.
-4. Restart the tmux server after capability changes.
+1. Keep `terminal-features` narrow and explicit for the actual outer terminal type.
+2. Avoid piling up repeated `set -ga terminal-overrides` and `set -ga terminal-features` across reloads.
+3. Restart the tmux server after capability changes.
+4. Only if the leak persists, set `set -g focus-events off`.
 
 Why:
 
 - The leaked text is often not literal mouse coordinates. It is commonly a delayed terminal response mixed with mouse reporting and left unread by tmux in an unstable path.
+- The baseline is `focus-events on`, which modern terminals handle correctly. Disabling it is a targeted last resort for Windows Terminal, WSL, ConPTY, and high-latency SSH paths, not the default.
 
 ### Clipboard does not reach the local machine
 
@@ -41,13 +42,35 @@ Common signs:
 Primary fixes:
 
 1. Set `set -g allow-passthrough all`.
-2. Set `set -s set-clipboard external`.
-3. Ensure `Ms` exists for the active terminal type via `terminal-overrides`.
+2. Set `set -s set-clipboard on`.
+3. Ensure `Ms` exists for the active terminal type via `terminal-overrides`, and that the same terminal name also appears in `terminal-features` with `clipboard`.
 4. Verify that the host terminal supports OSC 52.
 
 Why:
 
 - Remote tmux needs to emit clipboard data outward rather than only maintaining internal tmux buffers.
+- A terminal listed in `terminal-overrides` but missing from `terminal-features` loses `clipboard` support even when `Ms` is correct.
+
+### Modified keys collapse to plain keys
+
+Common signs:
+
+- `Shift+Enter` submits instead of inserting a newline;
+- `Ctrl+Enter` or `Option/Alt+Enter` behave identically to `Enter`;
+- the same keybindings work outside tmux but not inside it.
+
+Primary fixes:
+
+1. Set `set -s extended-keys on`.
+2. Set `set -g extended-keys-format csi-u`, which requires tmux 3.5 or later.
+3. Ensure the outer terminal is present in `terminal-features` with `extkeys`.
+4. Restart the tmux server.
+
+Why:
+
+- Without extended keys, tmux forwards modified Enter as a bare `\r`, so the application cannot distinguish it.
+
+See `references/extended-keys.md` for key-sequence tables and the tmux 3.2 through 3.4 fallback.
 
 ### Copying text is inconvenient even after tmux is stable
 
@@ -101,8 +124,10 @@ Pay attention to:
 - `focus-events`
 - `set-clipboard`
 - `allow-passthrough`
+- `extended-keys` and `extended-keys-format`
 - `mouse`
 - duplicate terminal declarations
+- terminal names listed in `terminal-overrides` but missing from `terminal-features`
 
 ## Validation Sequence
 
@@ -114,7 +139,8 @@ Pay attention to:
    - mouse movement;
    - copy mode;
    - local clipboard;
-   - native terminal selection fallback.
+   - native terminal selection fallback;
+   - a modified key such as `Shift+Enter`, which must not arrive as a bare `\r`.
 
 ## Full Config Path
 

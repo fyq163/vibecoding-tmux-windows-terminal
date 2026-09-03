@@ -21,11 +21,11 @@ Reason:
 
 ### `terminal-overrides`
 
-Use explicit terminal names:
+List every outer terminal that actually appears in the user's chain. For a Ghostty-on-macOS chain that also reaches Windows Terminal, list both:
 
 ```tmux
-set -g terminal-overrides "xterm-256color:Tc:RGB,tmux-256color:Tc:RGB,tmux:Tc:RGB"
-set -ag terminal-overrides ",xterm-256color:Ms=\\E]52;c;%p2%s\\007,tmux-256color:Ms=\\E]52;c;%p2%s\\007,tmux:Ms=\\E]52;c;%p2%s\\007"
+set -g terminal-overrides "xterm-ghostty:Tc:RGB,xterm-256color:Tc:RGB,tmux-256color:Tc:RGB,tmux:Tc:RGB"
+set -ag terminal-overrides ",xterm-ghostty:Ms=\\E]52;c;%p2%s\\007,xterm-256color:Ms=\\E]52;c;%p2%s\\007,tmux-256color:Ms=\\E]52;c;%p2%s\\007,tmux:Ms=\\E]52;c;%p2%s\\007"
 ```
 
 Reason:
@@ -33,31 +33,52 @@ Reason:
 - `Tc` and `RGB` cover truecolor capability reporting.
 - `Ms` enables OSC 52 clipboard output.
 - Narrow matching avoids falsely claiming capability support for unrelated terminals.
+- `xterm-ghostty` is required when the outer terminal is Ghostty. Omitting it leaves that chain without `RGB`, truecolor, or OSC 52.
 
 ### `terminal-features`
 
 Use:
 
 ```tmux
-set -g terminal-features "xterm-256color:RGB:mouse:extkeys:clipboard,tmux-256color:RGB:mouse:extkeys:clipboard,tmux:RGB:mouse:extkeys:clipboard"
+set -g terminal-features "xterm-ghostty:RGB:mouse:extkeys:clipboard,xterm-256color:RGB:mouse:extkeys:clipboard,tmux-256color:RGB:mouse:extkeys:clipboard,tmux:RGB:mouse:extkeys:clipboard"
 ```
 
 Reason:
 
 - This is the modern high-level declaration for capability classes.
 - It is cleaner than stacking many old-style override fragments.
+- The terminal name list must match `terminal-overrides`. A terminal missing here silently loses `extkeys` and `clipboard` even when `Ms` is set.
+
+### `extended-keys` and `extended-keys-format`
+
+Use:
+
+```tmux
+set -s extended-keys on
+set -g extended-keys-format csi-u
+```
+
+Reason:
+
+- Without extended keys, tmux collapses `Shift+Enter`, `Ctrl+Enter`, and `Alt+Enter` into plain `\r`, so applications cannot distinguish them.
+- `csi-u` forwards modified keys as `\x1b[13;2u` instead of the xterm `modifyOtherKeys` form `\x1b[27;5;13~`. It is the more reliable encoding.
+- `extended-keys-format` requires tmux 3.5 or later. Omit the line on tmux 3.2 through 3.4, where the default xterm format still works.
+- `extended-keys on` selects the encoding. `extkeys` in `terminal-features` declares that the outer terminal supports it. Both are required.
+
+See `references/extended-keys.md` for the full key-sequence tables and version fallback.
 
 ### `focus-events`
 
 Use:
 
 ```tmux
-set -g focus-events off
+set -g focus-events on
 ```
 
 Reason:
 
-- In Windows Terminal, WSL, ConPTY, or SSH-latency paths, focus-related terminal responses can leak into the pane as raw text.
+- Modern terminals such as Ghostty, Kitty, iTerm2, WezTerm, and Windows Terminal handle focus notifications correctly, and applications rely on them for focus-dependent rendering.
+- Turn it `off` only when Windows Terminal, WSL, ConPTY, or SSH-latency paths visibly leak focus or device-attribute responses into the pane as raw text such as `61;...c`.
 
 ### `allow-passthrough`
 
@@ -76,12 +97,14 @@ Reason:
 Use:
 
 ```tmux
-set -s set-clipboard external
+set -s set-clipboard on
 ```
 
 Reason:
 
 - Remote tmux should emit clipboard content outward to the host terminal instead of only accepting application-originated clipboard updates.
+- `on` covers both directions: tmux accepts application-initiated clipboard writes and emits OSC 52 to the host terminal.
+- Older guides use `external`, which only emits outward. `on` is the value to prefer unless an application misbehaves by writing the clipboard on focus or selection.
 
 ## Copying and Selection
 

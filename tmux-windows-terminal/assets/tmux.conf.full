@@ -24,6 +24,7 @@ set -g terminal-features "xterm-ghostty:RGB:mouse:extkeys:clipboard,xterm-256col
 set -g mouse on
 set -g focus-events on
 set -s extended-keys on
+set -g extended-keys-format csi-u
 set -g allow-passthrough all
 set -s set-clipboard on
 
